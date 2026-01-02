@@ -1,95 +1,65 @@
-# streamlit_app.py
+# streamlit_app_basic.py
 
 import streamlit as st
-import pandas as pd
-import feedparser
-from sklearn.feature_extraction.text import TfidfVectorizer
-from wordcloud import WordCloud
-import matplotlib.pyplot as plt
+from collections import Counter
 
 # ---------------- Helper Functions ----------------
-def fetch_reddit_posts(topic, limit=500):
-    url = f"https://www.reddit.com/r/all/search.rss?q={topic}&limit={limit}"
-    feed = feedparser.parse(url)
-    titles = [entry.title for entry in feed.entries]
-    return titles if titles else ["No posts found."]
+def fetch_reddit_posts(topic, limit=20):
+    # Placeholder data: no extra packages
+    return [f"Reddit post about {topic} #{i+1}" for i in range(limit)]
 
-def fetch_twitter_posts(topic, limit=500):
-    # Placeholder: Replace with Twitter API logic
-    st.warning("Twitter API not configured. Add your API keys and fetching code.")
-    return [f"Sample tweet about {topic}"] * limit
+def fetch_twitter_posts(topic, limit=20):
+    return [f"Twitter tweet about {topic} #{i+1}" for i in range(limit)]
 
-def fetch_facebook_posts(topic, limit=500):
-    # Placeholder: Replace with Facebook API logic
-    st.warning("Facebook API not configured. Add your API keys and fetching code.")
-    return [f"Sample Facebook post about {topic}"] * limit
+def fetch_facebook_posts(topic, limit=20):
+    return [f"Facebook post about {topic} #{i+1}" for i in range(limit)]
 
-def generate_wordcloud(text_list):
-    if not text_list:
-        return None
-    df = pd.DataFrame(text_list, columns=["text"])
-    vectorizer = TfidfVectorizer(stop_words="english")
-    tfidf_matrix = vectorizer.fit_transform(df["text"])
-    scores = tfidf_matrix.sum(axis=0).A1
-    words = vectorizer.get_feature_names_out()
-    tfidf_dict = dict(zip(words, scores))
-    wc = WordCloud(width=800, height=400, background_color="white").generate_from_frequencies(tfidf_dict)
-    return wc
+def get_word_frequencies(posts):
+    words = []
+    for post in posts:
+        words += post.lower().split()
+    freq = Counter(words)
+    return freq.most_common(20)  # top 20 words
 
 # ---------------- Streamlit App ----------------
-st.set_page_config(page_title="Social Media WordCloud Generator", layout="wide")
-st.title("Social Media WordCloud Generator")
+st.set_page_config(page_title="Simple Social Media WordCloud", layout="wide")
+st.title("Simple Social Media Word Frequencies")
 
-# Tabs
 tab_reddit, tab_twitter, tab_facebook = st.tabs(["Reddit", "Twitter", "Facebook"])
 
 # ------------- Reddit Tab -------------
 with tab_reddit:
-    st.header("Reddit WordCloud")
-    topic_reddit = st.text_input("Enter topic for Reddit:", "silver", key="reddit_topic")
-    num_posts_reddit = st.slider("Number of posts to fetch:", 500, 5000, 1000, step=100, key="reddit_slider")
-    if st.button("Generate Reddit WordCloud"):
-        with st.spinner("Fetching Reddit posts..."):
-            posts = fetch_reddit_posts(topic_reddit, limit=num_posts_reddit)
-            wc = generate_wordcloud(posts)
-            if wc:
-                plt.figure(figsize=(12,6))
-                plt.imshow(wc, interpolation="bilinear")
-                plt.axis("off")
-                st.pyplot(plt)
-            else:
-                st.warning("No data to generate word cloud.")
+    st.header("Reddit Word Frequencies")
+    topic = st.text_input("Enter topic for Reddit:", "silver", key="reddit_topic")
+    num_posts = st.slider("Number of posts to generate:", 10, 100, 20, step=10, key="reddit_slider")
+    if st.button("Show Reddit Word Frequencies"):
+        posts = fetch_reddit_posts(topic, num_posts)
+        freq = get_word_frequencies(posts)
+        st.subheader("Top Words")
+        for word, count in freq:
+            st.write(f"{word}: {count}")
 
 # ------------- Twitter Tab -------------
 with tab_twitter:
-    st.header("Twitter WordCloud")
-    topic_twitter = st.text_input("Enter topic for Twitter:", "silver", key="twitter_topic")
-    num_posts_twitter = st.slider("Number of tweets to fetch:", 500, 5000, 1000, step=100, key="twitter_slider")
-    if st.button("Generate Twitter WordCloud"):
-        with st.spinner("Fetching Twitter posts..."):
-            posts = fetch_twitter_posts(topic_twitter, limit=num_posts_twitter)
-            wc = generate_wordcloud(posts)
-            if wc:
-                plt.figure(figsize=(12,6))
-                plt.imshow(wc, interpolation="bilinear")
-                plt.axis("off")
-                st.pyplot(plt)
-            else:
-                st.warning("No data to generate word cloud.")
+    st.header("Twitter Word Frequencies")
+    topic = st.text_input("Enter topic for Twitter:", "silver", key="twitter_topic")
+    num_posts = st.slider("Number of tweets to generate:", 10, 100, 20, step=10, key="twitter_slider")
+    if st.button("Show Twitter Word Frequencies"):
+        posts = fetch_twitter_posts(topic, num_posts)
+        freq = get_word_frequencies(posts)
+        st.subheader("Top Words")
+        for word, count in freq:
+            st.write(f"{word}: {count}")
 
 # ------------- Facebook Tab -------------
 with tab_facebook:
-    st.header("Facebook WordCloud")
-    topic_facebook = st.text_input("Enter topic for Facebook:", "silver", key="facebook_topic")
-    num_posts_facebook = st.slider("Number of posts to fetch:", 500, 5000, 1000, step=100, key="facebook_slider")
-    if st.button("Generate Facebook WordCloud"):
-        with st.spinner("Fetching Facebook posts..."):
-            posts = fetch_facebook_posts(topic_facebook, limit=num_posts_facebook)
-            wc = generate_wordcloud(posts)
-            if wc:
-                plt.figure(figsize=(12,6))
-                plt.imshow(wc, interpolation="bilinear")
-                plt.axis("off")
-                st.pyplot(plt)
-            else:
-                st.warning("No data to generate word cloud.")
+    st.header("Facebook Word Frequencies")
+    topic = st.text_input("Enter topic for Facebook:", "silver", key="facebook_topic")
+    num_posts = st.slider("Number of posts to generate:", 10, 100, 20, step=10, key="facebook_slider")
+    if st.button("Show Facebook Word Frequencies"):
+        posts = fetch_facebook_posts(topic, num_posts)
+        freq = get_word_frequencies(posts)
+        st.subheader("Top Words")
+        for word, count in freq:
+            st.write(f"{word}: {count}")
+
