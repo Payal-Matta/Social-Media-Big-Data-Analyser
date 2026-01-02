@@ -1,26 +1,32 @@
-# streamlit_app_wordcount.py
+# streamlit_app_wordcount_fixed.py
 
 import streamlit as st
 from collections import Counter
 import pandas as pd
+import re
 
 # ---------------- Helper Functions ----------------
+# Basic stopwords (you can add more if needed)
+STOPWORDS = {"about", "the", "and", "for", "with", "this", "that", "post", "tweet", "silver"}
+
 def fetch_reddit_posts(topic, limit=50):
     # Simulate Reddit posts
     return [f"Reddit post about {topic} #{i+1}" for i in range(limit)]
 
 def fetch_twitter_posts(topic, limit=50):
-    # Simulate Twitter tweets
     return [f"Twitter tweet about {topic} #{i+1}" for i in range(limit)]
 
 def fetch_facebook_posts(topic, limit=50):
-    # Simulate Facebook posts
     return [f"Facebook post about {topic} #{i+1}" for i in range(limit)]
 
 def get_word_frequencies(posts):
     words = []
     for post in posts:
-        words += post.lower().replace('#','').split()  # remove hashtags
+        # lowercase, remove numbers, hashtags, punctuation
+        clean_post = re.sub(r'[^a-zA-Z\s]', '', post.lower())
+        for word in clean_post.split():
+            if word not in STOPWORDS:
+                words.append(word)
     freq = Counter(words)
     df = pd.DataFrame(freq.items(), columns=["Word", "Count"])
     df = df.sort_values(by="Count", ascending=False).reset_index(drop=True)
@@ -28,7 +34,7 @@ def get_word_frequencies(posts):
 
 # ---------------- Streamlit App ----------------
 st.set_page_config(page_title="Social Media Word Counter", layout="wide")
-st.title("Social Media Word Frequency Analyzer")
+st.title("Social Media Word Frequency Analyzer (Fixed)")
 
 tab_reddit, tab_twitter, tab_facebook = st.tabs(["Reddit", "Twitter", "Facebook"])
 
@@ -41,8 +47,8 @@ with tab_reddit:
         posts = fetch_reddit_posts(topic, num_posts)
         df = get_word_frequencies(posts)
         st.subheader("Top Words")
-        st.dataframe(df)  # Shows word and count
-        st.bar_chart(df.set_index("Word"))  # Simple visual chart
+        st.dataframe(df)
+        st.bar_chart(df.set_index("Word"))
 
 # ------------- Twitter Tab -------------
 with tab_twitter:
@@ -67,5 +73,3 @@ with tab_facebook:
         st.subheader("Top Words")
         st.dataframe(df)
         st.bar_chart(df.set_index("Word"))
-
-
